@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ ! -d "$HOME/.cache/dnf" ]; then
+    mkdir -v "${HOME}/.cache/dnf"
+fi
+
+podman run \
+    --rm -it \
+    --userns keep-id \
+    --volume /:/run/host:ro \
+    --volume /run/dbus:/run/dbus \
+    --volume /run/udev:/run/udev:ro \
+    --volume /tmp/.X11-unix:/tmp/.X11-unix \
+    --volume "${XDG_RUNTIME_DIR}:${XDG_RUNTIME_DIR}" \
+    --volume "$HOME/.cache/dnf:/var/cache/dnf" \
+    --volume "$HOME/.bashrc:$HOME/.bashrc:ro" \
+    --volume "$PWD:$PWD" \
+    --device /dev/snd \
+    -w "$PWD" \
+    --security-opt label=disable \
+    --ipc host \
+    --network host \
+    --user root \
+    -e DISPLAY \
+    -e DBUS_SESSION_BUS_ADDRESS \
+    -e XDG_RUNTIME_DIR \
+    "fedora:$(rpm --eval %fedora)" /bin/bash -c "echo '${USER} ALL=(ALL)  NOPASSWD: ALL' >> /etc/sudoers && sudo -E -u ${USER} bash -l"
+
