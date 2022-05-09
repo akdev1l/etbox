@@ -15,5 +15,5 @@ $(BUILD_DIR)/etbox-run: $(SRC_DIR)/etbox-run
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
 
-$(DESTDIR)/bin/etbox-run:
+$(DESTDIR)/bin/etbox-run: $(BUILD_DIR)/etbox-run
 	install -m=755 $(BUILD_DIR)/etbox-run $(DESTDIR)/bin/etbox-run

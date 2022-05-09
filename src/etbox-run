@@ -6,12 +6,10 @@ do_init() {
     echo "${USER} ALL=(ALL)  NOPASSWD: ALL" >> /etc/sudoers
     echo "export PS1='(etbox) [\\u@\\h \\W]\\\$ '"  >> /etc/profile
 
-
     exec sudo -E -u "${USER}" /usr/bin/bash -l
 }
 
 if [ "${THIS_SCRIPT}" = "/usr/bin/entrypoint" ]; then
-    echo executing entrypoting
     do_init
     exit
 fi
