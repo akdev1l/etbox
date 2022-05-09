@@ -4,6 +4,8 @@ SRC_DIR := src
 
 all: $(BUILD_DIR) $(BUILD_DIR)/etbox-run
 
+install: $(DESTDIR)/bin/etbox-run
+	
 clean:
 	rm -rf "$(BUILD_DIR)"
 
@@ -12,3 +14,6 @@ $(BUILD_DIR)/etbox-run: $(SRC_DIR)/etbox-run
 
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
+
+$(DESTDIR)/bin/etbox-run:
+	install -m=755 $(BUILD_DIR)/etbox-run $(DESTDIR)/bin/etbox-run

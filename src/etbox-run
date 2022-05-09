@@ -1,22 +1,49 @@
 #!/bin/bash
 
+THIS_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+
+do_init() {
+    echo "${USER} ALL=(ALL)  NOPASSWD: ALL" >> /etc/sudoers
+    echo "export PS1='(etbox) [\\u@\\h \\W]\\\$ '"  >> /etc/profile
+
+
+    exec sudo -E -u "${USER}" /usr/bin/bash -l
+}
+
+if [ "${THIS_SCRIPT}" = "/usr/bin/entrypoint" ]; then
+    echo executing entrypoting
+    do_init
+    exit
+fi
+
+
 if [ ! -d "$HOME/.cache/dnf" ]; then
     mkdir -v "${HOME}/.cache/dnf"
 fi
 
+
 podman run \
     --rm -it \
+    --privileged \
     --userns keep-id \
+    --systemd always \
+    --volume ${THIS_SCRIPT}:/usr/bin/entrypoint \
     --volume /:/run/host:ro \
     --volume /run/dbus:/run/dbus \
-    --volume /run/udev:/run/udev:ro \
+    --volume /run/udev:/run/udev \
+    --volume /run/libvirt:/run/libvirt \
     --volume /tmp/.X11-unix:/tmp/.X11-unix \
+    --volume /run/systemd/journal:/run/systemd/journal \
     --volume "${XDG_RUNTIME_DIR}:${XDG_RUNTIME_DIR}" \
     --volume "$HOME/.cache/dnf:/var/cache/dnf" \
-    --volume "$HOME/.bashrc:$HOME/.bashrc:ro" \
+    --volume "$HOME:$HOME:rslave" \
     --volume "$PWD:$PWD" \
+    --volume /etc/host.conf:/etc/host.conf:ro \
+    --volume /etc/localtime:/etc/localtime:ro \
+    --volume /etc/machine-id:/etc/machine-id:ro \
     --device /dev/snd \
     -w "$PWD" \
+    --pids-limit -1 \
     --security-opt label=disable \
     --ipc host \
     --network host \
@@ -24,5 +51,9 @@ podman run \
     -e DISPLAY \
     -e DBUS_SESSION_BUS_ADDRESS \
     -e XDG_RUNTIME_DIR \
-    "fedora:$(rpm --eval %fedora)" /bin/bash -c "echo '${USER} ALL=(ALL)  NOPASSWD: ALL' >> /etc/sudoers && sudo -E -u ${USER} bash -l"
+    -e USER \
+    -e SHELL \
+    -e TERM \
+    --entrypoint /usr/bin/entrypoint \
+    "fedora:$(rpm --eval %fedora)" entrypoint
 

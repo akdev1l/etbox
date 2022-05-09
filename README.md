@@ -22,3 +22,12 @@ $ xeyes
 ```
 
 The graphical applications will run under your current graphical session and will use the pipewire/pipewire-pulse daemon to route audio.
+
+### Installation
+
+We don't need much. You can copy the script from `src/etbox-run` script somewhere or you can be fancy and do:
+
+```
+$ make
+$ make DESTDIR=$HOME/.local
+```
