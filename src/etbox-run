@@ -46,9 +46,17 @@ podman run \
     --ipc host \
     --network host \
     --user root \
+    -e SSH_AUTH_SOCK \
+    -e GDK_SCALE \
+    -e GDK_DPI_SCALE \
+    -e QT_AUTO_SCREEN_SCALE_FACTOR \
+    -e QT_SCREEN_SCALE_FACTORS \
+    -e GTK_RC_FILES \
+    -e GTK2_RC_FILES \
     -e DISPLAY \
     -e DBUS_SESSION_BUS_ADDRESS \
     -e XDG_RUNTIME_DIR \
+    -e XCURSOR_SIZE \
     -e USER \
     -e SHELL \
     -e TERM \
