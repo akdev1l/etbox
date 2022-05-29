@@ -20,7 +20,7 @@ if [ ! -d "$HOME/.cache/dnf" ]; then
 fi
 
 if rpm -ql xorg-x11-drv-nvidia >/dev/null; then
-	NVIDIA_DRIVERS="$(rpm -ql xorg-x11-drv-nvidia xorg-x11-drv-nvidia-libs | grep -v ".build-id" | xargs -I{} bash -c "test -e {} && echo '-v {}:{} '")"
+	NVIDIA_DRIVERS="$(rpm -ql xorg-x11-drv-nvidia xorg-x11-drv-nvidia-libs | grep -v ".build-id" | xargs -I{} bash -c "test -e {} && echo '-v {}:{}:ro '")"
 fi
 
 
