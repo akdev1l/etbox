@@ -4,13 +4,13 @@ THIS_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
 
 do_init() {
     echo "${USER} ALL=(ALL)  NOPASSWD: ALL" >> /etc/sudoers
-    echo "export PS1='(etbox) [\\u@\\h \\W]\\\$ '"  >> /etc/profile
+    echo "export PS1='(etbox - $(date +%s)) [\\u@\\h \\W]\\\$ '"  >> /etc/profile
 
-    exec sudo -E -u "${USER}" /usr/bin/bash -l
+    exec sudo -E -u "${USER}" /usr/bin/bash -l -- "$@"
 }
 
 if [ "${THIS_SCRIPT}" = "/usr/bin/entrypoint" ]; then
-    do_init
+    do_init "$@"
     exit
 fi
 
@@ -19,12 +19,17 @@ if [ ! -d "$HOME/.cache/dnf" ]; then
     mkdir -v "${HOME}/.cache/dnf"
 fi
 
+if rpm -ql xorg-x11-drv-nvidia >/dev/null; then
+	NVIDIA_DRIVERS="$(rpm -ql xorg-x11-drv-nvidia xorg-x11-drv-nvidia-libs | grep -v ".build-id" | xargs -I{} bash -c "test -e {} && echo '-v {}:{} '")"
+fi
+
 
 podman run \
     --rm -it \
     --privileged \
     --userns keep-id \
     --systemd always \
+    --gpus all \
     --volume ${THIS_SCRIPT}:/usr/bin/entrypoint \
     --volume /:/run/host:ro \
     --volume /run/dbus:/run/dbus \
@@ -36,10 +41,14 @@ podman run \
     --volume "$HOME/.cache/dnf:/var/cache/dnf" \
     --volume "$HOME:$HOME:rslave" \
     --volume "$PWD:$PWD" \
+    --volume /etc/dnf/dnf.conf:/etc/dnf/dnf.conf:ro \
+    --volume /etc/pki/rpm-gpg:/etc/pki/rpm-gpg:ro \
+    --volume /etc/yum.repos.d:/etc/yum.repos.d:ro \
     --volume /etc/host.conf:/etc/host.conf:ro \
     --volume /etc/localtime:/etc/localtime:ro \
     --volume /etc/machine-id:/etc/machine-id:ro \
     --device /dev/snd \
+    ${NVIDIA_DRIVERS} \
     -w "$PWD" \
     --pids-limit -1 \
     --security-opt label=disable \
@@ -60,6 +69,7 @@ podman run \
     -e USER \
     -e SHELL \
     -e TERM \
+    -e ETBOX_NVIDIA \
+    -e ETBOX_RPMFUSION \
     --entrypoint /usr/bin/entrypoint \
-    "fedora:$(rpm --eval %fedora)" entrypoint
-
+    "fedora:$(rpm --eval %fedora)" "$@"
